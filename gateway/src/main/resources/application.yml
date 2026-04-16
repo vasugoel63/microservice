@@ -1,0 +1,41 @@
+server:
+  port: 4001
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: patient-service-route
+          uri: http://demo:4000
+          predicates:
+            - Path=/api/patients/**
+
+        - id: auth-service-route
+          uri: http://auth-service:4005
+          predicates:
+            - Path=/api/auth/**
+
+        - id: billing-service-route
+          uri: http://billing-service:4002
+          predicates:
+            - Path=/api/billing/**
+
+        - id: bill-service-route
+          uri: http://billservice:4003
+          predicates:
+            - Path=/api/bill/**
+
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "*"   
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true

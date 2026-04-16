@@ -19,7 +19,7 @@ import com.example.billservice.entities.Bill;
 import com.example.billservice.services.BillService;
 
 @RestController
-@RequestMapping("/bills")
+@RequestMapping("/api/bill")
 public class BillingController {
 
     private final BillService billService;

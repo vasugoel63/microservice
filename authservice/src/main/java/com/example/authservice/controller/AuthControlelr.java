@@ -2,11 +2,11 @@ package com.example.authservice.controller;
 
 import java.util.Optional;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,17 +16,18 @@ import com.example.authservice.dto.LoginResponseDTO;
 import com.example.authservice.dto.PasswordUpdateDTO;
 import com.example.authservice.dto.UserRequestDTO;
 import com.example.authservice.model.User;
-import com.example.authservice.service.authService;
+import com.example.authservice.service.AuthService;
 import com.example.authservice.service.userService;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@RequestMapping("/api/auth")
 @RestController
 public class AuthControlelr {
-    private final authService AuthService;
+    private final AuthService AuthService;
 
-    public AuthControlelr(authService AuthService) {
+    public AuthControlelr(AuthService AuthService) {
         this.AuthService = AuthService;
     }
 
@@ -46,20 +47,21 @@ public class AuthControlelr {
 
     // @Operation(summary = "Validate Token")
     @GetMapping("/validate")
-    public ResponseEntity<Void> validateToken(
+    public ResponseEntity<String> validateToken(
             @RequestHeader("Authorization") String authHeader) {
-        // Authorization- Bearer token
-        if (authHeader == null || !authHeader.startsWith("Bearer")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid header");
         }
 
-        return AuthService.validateToken(authHeader.substring(7))
-                ? ResponseEntity.ok().build()
-                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        String token = authHeader.substring(7);
 
+        return AuthService.validateToken(token)
+                ? ResponseEntity.ok("Valid user")
+                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
     }
 
-    @GetMapping("/create")
+    @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestBody UserRequestDTO userRequestDTO) {
         try {
             User user = AuthService.createUser(userRequestDTO);

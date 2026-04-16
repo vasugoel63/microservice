@@ -25,9 +25,6 @@ public class LineItem {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    // bill id
-    private UUID billId;
-
     @NotNull
     private String itemType;
 

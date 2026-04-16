@@ -1,6 +1,5 @@
 package com.example.authservice.service;
 
-import java.lang.foreign.Linker.Option;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -15,13 +14,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import io.jsonwebtoken.JwtException;
 
 @Service
-public class authService {
+public class AuthService {
 
     private final userService UserService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public authService(userService UserService, PasswordEncoder passwordEncoder,
+    public AuthService(userService UserService, PasswordEncoder passwordEncoder,
             JwtUtil jwtUtil) {
         this.UserService = UserService;
         this.passwordEncoder = passwordEncoder;

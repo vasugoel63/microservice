@@ -41,6 +41,18 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "4001:4001"
+    depends_on:
+      - demo
+      - auth-service
+      - billing-service
+      - bill-service
+
   demo:
     build: ./demo
     container_name: demo
@@ -69,4 +81,11 @@ services:
     depends_on:
       - postgres-db
       - kafka
+
+  auth-service:
+    build: ./authservice
+    container_name: authservice
+    ports:
+     - "4005:4005"
+
   
