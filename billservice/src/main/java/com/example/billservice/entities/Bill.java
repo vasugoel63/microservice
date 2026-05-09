@@ -1,14 +1,20 @@
 package com.example.billservice.entities;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.SecondaryRow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,12 +44,21 @@ public class Bill {
     private Double totalAmount;
 
     @NotNull
-    private LocalDate purchaseDate;
+    private LocalDateTime purchaseDateTime;
 
-    @NotNull
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private BillStatus status;
 
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<LineItem> items;
+
+    private LocalDateTime paidDateTime;
+
+    @OneToMany(mappedBy = "bill")
+    @JsonManagedReference
+    private List<Transaction> transactions;
+
+    private String razorpayOrderId;
 
 }

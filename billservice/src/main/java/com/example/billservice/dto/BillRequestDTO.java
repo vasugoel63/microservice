@@ -1,6 +1,7 @@
 package com.example.billservice.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +23,9 @@ public class BillRequestDTO {
     private String patientId;
 
     private String status;
+
+    @NotNull
+    private LocalDateTime purchaseDate;
 
     @NotNull
     private List<LineRequestDTO> lineItems;

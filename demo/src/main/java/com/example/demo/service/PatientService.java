@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -22,8 +24,9 @@ public class PatientService {
     private PatientRepository patientRepository;
     // private final BillingServiceGrpcClient billingServiceGrpcClient;
     private final PatientKafkaProducer kafkaProducer;
+    private static final Logger logger = LoggerFactory.getLogger(PatientService.class);
 
-    public PatientService(PatientRepository patientRepository, 
+    public PatientService(PatientRepository patientRepository,
             PatientKafkaProducer kafkaProducer) {
         this.patientRepository = patientRepository;
         // this.billingServiceGrpcClient = billingServiceGrpcClient;
@@ -32,11 +35,21 @@ public class PatientService {
 
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
+        logger.info("All patients list returned");
         List<PatientResponseDTO> patientResponseDTOs = patients.stream()
                 .map(patient -> PatientMapper.toDTO(patient))
                 .toList();
 
         return patientResponseDTOs;
+    }
+
+    public PatientResponseDTO getSinglePatient(UUID patientId) {
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+        logger.info("Single patients info returned");
+
+        return PatientMapper.toDTO(patient);
     }
 
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
@@ -45,12 +58,17 @@ public class PatientService {
                     "A Patient with this email" + "already exists" + patientRequestDTO.getEmail());
         }
         Patient newpatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
-
-        PatientCreatedEvent event = new PatientCreatedEvent();
-        event.setPatientId(newpatient.getId().toString());
-        event.setName(newpatient.getName());
-        event.setEmail(newpatient.getEmail());
-        kafkaProducer.sendPatientCreatedEvent(event);
+        logger.info("patients created success");
+        try {
+            PatientCreatedEvent event = new PatientCreatedEvent();
+            event.setPatientId(newpatient.getId().toString());
+            event.setName(newpatient.getName());
+            event.setEmail(newpatient.getEmail());
+            kafkaProducer.sendPatientCreatedEvent(event);
+            logger.info("billing account created success");
+        } catch (Exception e) {
+            logger.error("Kafka failed but patient saved");
+        }
         // billingservice
         // billingServiceGrpcClient.createBillingAccount(newpatient.getId().toString(),
         // newpatient.getName(), newpatient.getEmail());

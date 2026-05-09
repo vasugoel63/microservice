@@ -2,7 +2,11 @@ package com.example.billservice.entities;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,8 +29,9 @@ public class LineItem {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
     @NotNull
-    private String itemType;
+    private ItemType itemType;
 
     @NotNull
     private String description;
@@ -39,6 +44,7 @@ public class LineItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id")
+    @JsonBackReference
     private Bill bill;
 
 }

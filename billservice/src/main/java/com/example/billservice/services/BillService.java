@@ -1,51 +1,69 @@
 package com.example.billservice.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.billservice.dto.BillRequestDTO;
 import com.example.billservice.dto.BillResponseDTO;
+import com.example.billservice.dto.BillingAccountResponse;
 import com.example.billservice.dto.LineRequestDTO;
+import com.example.billservice.dto.TransactionDTO;
 import com.example.billservice.entities.Bill;
+import com.example.billservice.entities.BillStatus;
+import com.example.billservice.entities.ItemType;
 import com.example.billservice.entities.LineItem;
+import com.example.billservice.entities.PaymentMethod;
+import com.example.billservice.entities.Transaction;
+import com.example.billservice.entities.TransactionStatus;
 import com.example.billservice.event.BillUpdateEvent;
 import com.example.billservice.kafkaProducer.BillKafkaProducer;
 import com.example.billservice.repository.BillRepository;
 import com.example.billservice.repository.LineItemRepository;
+import com.example.billservice.repository.TransactionRepository;
 import com.example.billservice.mapper.BillMapper;
 
 @Service
 public class BillService {
     private BillRepository billRepository;
     private LineItemRepository lineItemRepository;
-    private final BillKafkaProducer billKafkaProducer;
+    private TransactionRepository transactionRepository;
+    private TransactionService transactionService;
 
     public BillService(BillRepository billRepository, LineItemRepository lineItemRepository,
-            BillKafkaProducer billKafkaProducer) {
+            TransactionRepository transactionRepository,
+            TransactionService transactionService) {
         this.billRepository = billRepository;
         this.lineItemRepository = lineItemRepository;
-        this.billKafkaProducer = billKafkaProducer;
+
+        this.transactionService = transactionService;
+        this.transactionRepository = transactionRepository;
     }
 
     public BillResponseDTO createBill(BillRequestDTO request) {
         Bill bill = new Bill();
         bill.setPatientId(request.getPatientId());
-        bill.setPurchaseDate(LocalDate.now());
-        bill.setStatus("PAID");
+        // bill.setPurchaseDateTime(request.getPurchaseDate());
+        bill.setStatus(BillStatus.PENDING);
         List<LineItem> lineItems = new ArrayList<>();
         double totalAmount = 0.0;
 
         for (LineRequestDTO itemDTO : request.getLineItems()) {
             LineItem lineitem = new LineItem();
-            lineitem.setItemType(itemDTO.getItemType());
+            lineitem.setItemType(ItemType.valueOf(itemDTO.getItemType()));
             lineitem.setDescription(itemDTO.getDescription());
             lineitem.setQuantity(itemDTO.getQuantity());
             lineitem.setUnitLineAmount(itemDTO.getUnitLineAmount());
@@ -55,34 +73,53 @@ public class BillService {
             lineItems.add(lineitem);
             totalAmount += totalLineAmount;
         }
-        bill.setBillAQId(generateBillAQId());
+        String billaqid = generateBillAQId();
+        bill.setBillAQId(billaqid);
         bill.setTotalAmount(totalAmount);
         bill.setItems(lineItems);
+        bill.setPurchaseDateTime(LocalDateTime.now());
         Bill savedBill = billRepository.save(bill);
         // update billing account and balance
-        // BillingAccount
 
-        BillUpdateEvent event = new BillUpdateEvent();
-        event.setPatientId(savedBill.getPatientId());
-        event.setAmount(savedBill.getTotalAmount());
-        billKafkaProducer.sendBillCreatedEvent(event);
+        // BillingAccount
+        // TransactionService call
+        // Transaction transaction = new Transaction();
+        // transaction.setAmount(BigDecimal.valueOf(totalAmount));
+        // transaction.setBillAQId(billaqid);
+        // transaction.setPaymentMethod(PaymentMethod.UPI);
+        // transaction.setStatus(TransactionStatus.SUCCESS);
+        // TransactionDTO txnDTO = new TransactionDTO();
+
         return BillMapper.mapToResponseDTO(savedBill);
 
     }
 
-    public List<Bill> getBillByPatient(String patientId) {
-        return billRepository.findByPatientId(patientId);
+    public List<Bill> getBills() {
+        List<Bill> bills = billRepository.findAll(Sort.by(Sort.Direction.DESC, "purchaseDate"));
+        return bills;
     }
 
-    public Bill updateBillStatus(UUID billId, String status) {
+    public List<Bill> getBillByPatient(String patientId) {
+        return billRepository.findByPatientId(
+                patientId,
+                Sort.by(Sort.Direction.DESC, "purchaseDate"));
+    }
+
+    public Bill updateStatus(UUID billId, String status) {
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
-        bill.setStatus(status);
+        if (bill.getStatus() == BillStatus.PAID) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bill already paid");
+        }
+        bill.setStatus(BillStatus.PAID);
+        bill.setPaidDateTime(LocalDateTime.now());
         return billRepository.save(bill);
     }
 
-    public Bill getBill(UUID billId) {
-        return billRepository.findById(billId)
-                .orElseThrow(() -> new RuntimeException("Bill not found"));
+    public BillResponseDTO getBill(UUID billId) {
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found"));
+
+        return BillMapper.mapToResponseDTO(bill);
     }
 
     public void deleteBill(UUID billId) {

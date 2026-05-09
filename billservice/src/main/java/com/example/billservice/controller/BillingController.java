@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.billservice.dto.BillRequestDTO;
 import com.example.billservice.dto.BillResponseDTO;
 import com.example.billservice.entities.Bill;
+import com.example.billservice.entities.Transaction;
 import com.example.billservice.services.BillService;
 
 @RestController
@@ -30,25 +31,29 @@ public class BillingController {
 
     @PostMapping
     public BillResponseDTO createBill(@RequestBody BillRequestDTO request) {
+      
         return billService.createBill(request);
     }
 
-    // ✅ Get Bills by Patient ID
+    @GetMapping
+    public List<Bill> getBills() {
+        return billService.getBills();
+    }
+
+    @GetMapping("/{billId}")
+    public BillResponseDTO getSingleBill(@PathVariable UUID billId) {
+        return billService.getBill(billId);
+    }
+
     @GetMapping("/patient/{patientId}")
     public List<Bill> getBillsByPatient(@PathVariable String patientId) {
         return billService.getBillByPatient(patientId);
     }
 
-    // ✅ Update Bill Status
     @PutMapping("/{billId}")
     public Bill updateBillStatus(@PathVariable UUID billId,
             @RequestParam String status) {
-        return billService.updateBillStatus(billId, status);
-    }
-
-    @GetMapping("/{billId}")
-    public Bill getbill(@PathVariable UUID billId) {
-        return billService.getBill(billId);
+        return billService.updateStatus(billId, status);
     }
 
     @DeleteMapping("/{billId}")

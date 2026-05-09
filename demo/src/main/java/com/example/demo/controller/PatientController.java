@@ -35,6 +35,14 @@ public class PatientController {
         return ResponseEntity.ok().body(patients);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientResponseDTO> getSinglePatient(@PathVariable UUID id) {
+
+        PatientResponseDTO patient = patientService.getSinglePatient(id);
+
+        return ResponseEntity.ok(patient);
+    }
+
     @PostMapping
     public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO patientRequestDTO) {
         PatientResponseDTO patientResponseDTO = patientService.createPatient(patientRequestDTO);

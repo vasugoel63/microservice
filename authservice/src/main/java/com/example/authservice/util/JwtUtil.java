@@ -36,17 +36,17 @@ public class JwtUtil {
                 .compact();
     }
 
-    public void validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             Jwts.parser()
                     .verifyWith((SecretKey) secretKey)
                     .build()
                     .parseSignedClaims(token);
 
-        } catch (SignatureException e) {
-            throw new JwtException("Invalid JWT");
+            return true;
+
         } catch (JwtException e) {
-            throw new JwtException("Invalid JWT");
+            return false;
         }
     }
 }

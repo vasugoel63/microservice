@@ -4,11 +4,27 @@ server:
 spring:
   cloud:
     gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3039"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
       routes:
         - id: patient-service-route
           uri: http://demo:4000
           predicates:
             - Path=/api/patients/**
+          filters:
+            - AuthenticationFilter  
 
         - id: auth-service-route
           uri: http://auth-service:4005
@@ -19,23 +35,12 @@ spring:
           uri: http://billing-service:4002
           predicates:
             - Path=/api/billing/**
+          filters:
+            - AuthenticationFilter  
 
         - id: bill-service-route
           uri: http://billservice:4003
           predicates:
             - Path=/api/bill/**
-
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        corsConfigurations:
-          '[/**]':
-            allowedOriginPatterns:
-              - "*"   
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
+          filters:
+            - AuthenticationFilter  
