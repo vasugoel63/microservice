@@ -43,7 +43,6 @@ public class Bill {
     @NotNull
     private Double totalAmount;
 
-    @NotNull
     private LocalDateTime purchaseDateTime;
 
     @Enumerated(EnumType.STRING)

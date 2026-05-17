@@ -84,6 +84,22 @@ services:
     ports:
       - "4005:4005"
 
+  analytics-ai-service:
+    build: ./analytics-ai-service
+    container_name: analytics-ai-service
+    ports:
+      - "4006:4006"
+    depends_on:
+      - postgres-db
+
+  notificationservice:
+    build: ./notificationservice
+    container_name: notificationservice
+    ports:
+      - "4008:4008"
+    depends_on:
+      - postgres-db
+
 # ✅ MUST be at root level
 volumes:
   postgres-data:

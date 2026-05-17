@@ -1,5 +1,7 @@
 package com.example.demo.dto;
 
+import java.sql.Struct;
+
 public class PatientResponseDTO {
     private String id;
     private String name;
@@ -7,6 +9,7 @@ public class PatientResponseDTO {
     private String address;
     private String dateOfBirth;
     private String registeredDate;
+    private String uhid;
 
     public String getId() {
         return id;
@@ -30,6 +33,14 @@ public class PatientResponseDTO {
 
     public String getRegisteredDate() {
         return registeredDate;
+    }
+
+    public String getuhid() {
+        return uhid;
+    }
+
+    public void setuhid(String id) {
+        this.uhid = id;
     }
 
     public String getEmail() {

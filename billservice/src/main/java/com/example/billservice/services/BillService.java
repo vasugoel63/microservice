@@ -35,6 +35,8 @@ import com.example.billservice.repository.BillRepository;
 import com.example.billservice.repository.LineItemRepository;
 import com.example.billservice.repository.TransactionRepository;
 import com.example.billservice.mapper.BillMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.example.billservice.services.EmailService;
 
 @Service
 public class BillService {
@@ -42,6 +44,9 @@ public class BillService {
     private LineItemRepository lineItemRepository;
     private TransactionRepository transactionRepository;
     private TransactionService transactionService;
+
+    @Autowired
+    private EmailService emailService;
 
     public BillService(BillRepository billRepository, LineItemRepository lineItemRepository,
             TransactionRepository transactionRepository,
@@ -79,6 +84,24 @@ public class BillService {
         bill.setItems(lineItems);
         bill.setPurchaseDateTime(LocalDateTime.now());
         Bill savedBill = billRepository.save(bill);
+        String body = """
+        Hi,
+
+        Your bill has been created successfully.
+
+        Bill AQ ID: %s
+        Total Amount: %s
+        Purchase Date: %s
+
+        Thank you.
+        """
+        .formatted(
+                savedBill.getBillAQId(),
+                savedBill.getTotalAmount(),
+                savedBill.getPurchaseDateTime()
+        );
+        emailService.sendEmail("vasugoel4308@gmail.com",  "Bill created successfully",
+                    body);
         // update billing account and balance
 
         // BillingAccount
@@ -95,14 +118,14 @@ public class BillService {
     }
 
     public List<Bill> getBills() {
-        List<Bill> bills = billRepository.findAll(Sort.by(Sort.Direction.DESC, "purchaseDate"));
+        List<Bill> bills = billRepository.findAll(Sort.by(Sort.Direction.DESC, "purchaseDateTime"));
         return bills;
     }
 
     public List<Bill> getBillByPatient(String patientId) {
         return billRepository.findByPatientId(
                 patientId,
-                Sort.by(Sort.Direction.DESC, "purchaseDate"));
+                Sort.by(Sort.Direction.DESC, "purchaseDateTime"));
     }
 
     public Bill updateStatus(UUID billId, String status) {

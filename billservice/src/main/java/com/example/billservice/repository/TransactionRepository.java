@@ -7,10 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.billservice.entities.Bill;
 import com.example.billservice.entities.LineItem;
 import com.example.billservice.entities.Transaction;
+import com.example.billservice.entities.TransactionStatus;
+
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
     List<Transaction> findByBillingAccountId(String billingAccountId);
 
     List<Transaction> findByBill_Id(UUID billId);
+
+    List<Transaction> findByStatus(TransactionStatus status);
 }

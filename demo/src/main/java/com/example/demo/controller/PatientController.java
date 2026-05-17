@@ -43,6 +43,18 @@ public class PatientController {
         return ResponseEntity.ok(patient);
     }
 
+    @GetMapping("/uhid/{uhid}")
+    public ResponseEntity<PatientResponseDTO> getPatientByUHId(@PathVariable String uhid) {
+        PatientResponseDTO patient = patientService.getPatientByUHID(uhid);
+        return ResponseEntity.ok(patient);
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<List<PatientResponseDTO>> getPatientByName(@PathVariable String name) {
+        List<PatientResponseDTO> patients = patientService.getPatientByName(name);
+        return ResponseEntity.ok().body(patients);
+    }
+
     @PostMapping
     public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO patientRequestDTO) {
         PatientResponseDTO patientResponseDTO = patientService.createPatient(patientRequestDTO);

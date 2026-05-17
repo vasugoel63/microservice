@@ -44,3 +44,22 @@ spring:
             - Path=/api/bill/**
           filters:
             - AuthenticationFilter  
+
+        - id: analytics-ai-service-route
+          uri: http://analytics-ai-service:4006
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - AuthenticationFilter
+
+        - id: notificationservice
+          uri: http://notificationservice:4008
+          predicates:
+          - Path=/api/notification/**
+          filters:
+          - AuthenticationFilter
+
+        - id: notification-websocket
+          uri: ws://notificationservice:4008
+          predicates:
+          - Path=/ws/**

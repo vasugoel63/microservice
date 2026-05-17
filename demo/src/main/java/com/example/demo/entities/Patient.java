@@ -1,4 +1,5 @@
 package com.example.demo.entities;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -16,6 +17,9 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @Column(unique = true)
+    private String uhid;
+
     @NotNull
     private String name;
 
@@ -28,8 +32,16 @@ public class Patient {
         return id;
     }
 
+    public String getUHID() {
+        return uhid;
+    }
+
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public void setUHID(String uhid) {
+        this.uhid = uhid;
     }
 
     public String getName() {

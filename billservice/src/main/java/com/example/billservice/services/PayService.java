@@ -25,6 +25,8 @@ import com.example.billservice.event.BillUpdateEvent;
 import com.example.billservice.kafkaProducer.BillKafkaProducer;
 import com.example.billservice.repository.BillRepository;
 import com.example.billservice.repository.TransactionRepository;
+import com.example.billservice.services.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.razorpay.Order;
 import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
@@ -39,6 +41,9 @@ public class PayService {
 
     @Value("${razorpay.api.secret}")
     private String apiSecret;
+
+    @Autowired
+    private EmailService emailService;
 
     private BillRepository billRepository;
     private TransactionRepository transactionRepository;
@@ -149,6 +154,31 @@ public class PayService {
             billKafkaProducer.sendBillCreatedEvent(event);
             bill.setPaidDateTime(LocalDateTime.now());
             billRepository.save(bill);
+
+               String body = """
+        Hi,
+
+        Your transaction is successfull for Bill No. %s
+        Transaction id: %s
+        Transaction time: %s
+        Transaction status: %s
+        Payment method: %s
+        Bill Status: %s
+        Total Amount: %s
+
+        Thank you.
+        """
+        .formatted(
+                bill.getBillAQId(),
+                savedTransaction.getTransactionRefId(),
+                savedTransaction.getCreatedAt(),
+                savedTransaction.getStatus(),
+                savedTransaction.getPaymentMethod(),
+                bill.getStatus(),
+                bill.getTotalAmount()
+        );
+        emailService.sendEmail("vasugoel4308@gmail.com",  "Transaction completed successfully",
+                    body);
         }
         return isValid;
     }
